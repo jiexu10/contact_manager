@@ -5,3 +5,38 @@
     <li><a href='/contacts/<%= contact.id %>'><%= contact.name %> - <%= contact.phone_number %></a></li>
   <% end %>
 </ul>
+
+<form method="post" action="/contacts" id="contact-search-form">
+  <label for="search-name">Search for Name</label>
+  <input type="text" name="name" id="search-name">
+  <input type="submit" value="Search">
+</form>
+
+<br>
+
+<% if @name.nil? %>
+  <% unless @page == 1 %>
+    <a href='/contacts/page/<%= @page - 1 %>'>Previous Page</a>
+  <% end %>
+  <% if @next_page %>
+    <a href='/contacts/page/<%= @page + 1 %>'>Next Page</a>
+  <% end %>
+<% else %>
+  <% unless @page == 1 %>
+    <a href='/contacts/page/<%= "#{@page - 1}_#{@name}" %>'>Previous Page</a>
+  <% end %>
+  <% if @next_page %>
+    <a href='/contacts/page/<%= "#{@page + 1}_#{@name}" %>'>Next Page</a>
+  <% end %>
+<% end %>
+
+<br>
+<br>
+
+<form method="post" action="/contacts/new" id="contact-new-form">
+  <label for="add-name">Add Name</label>
+  <input type="text" name="add_name" id="add-name">
+  <label for="phone-number">Phone Number</label>
+  <input type="text" name="phone_number" id="phone-number">
+  <input type="submit" value="Add">
+</form>

@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'sinatra/reloader'
 require 'sinatra/activerecord'
+require 'pry'
 
 require_relative 'models/contact'
 also_reload 'models/contact'
@@ -22,11 +23,46 @@ before do
 end
 
 get '/' do
-  @contacts = Contact.all
+  redirect '/contacts/page/1'
+end
+
+get '/contacts/page/:num' do
+  if params[:num].match(/^\d+$/)
+    @page = params[:num].to_i
+    contact_list = Contact.all
+  else
+    parsed_name = params[:num].match(/^(\d+)[_](\S+)_(\S+)/)
+    @page = parsed_name[1].to_i
+    @name = "#{parsed_name[2]}_#{parsed_name[3]}"
+    contact_list = Contact.where(first_name: parsed_name[2], last_name: parsed_name[3])
+  end
+  @contacts = contact_list.limit(10).offset((@page.to_i - 1) * 10)
+  @next_page = (contact_list.limit(10).offset((@page.to_i) * 10).length > 0)
   erb :index
 end
 
 get '/contacts/:id' do
   @contact = Contact.find_by(id: params[:id])
   erb :show
+end
+
+post '/contacts' do
+  parsed_name = params[:name].match(/^(\S+)\s(\S+)/)
+  if parsed_name
+    redirect "/contacts/page/1_#{parsed_name[1]}_#{parsed_name[2]}"
+  else
+    status 404
+    erb :error
+  end
+end
+
+post '/contacts/new' do
+  parsed_name = params[:add_name].match(/^(\S+)\s(\S+)/)
+  if parsed_name
+    Contact.create(first_name: parsed_name[1], last_name: parsed_name[2], phone_number: params[:phone_number])
+    redirect '/'
+  else
+    status 404
+    erb :error
+  end
 end
